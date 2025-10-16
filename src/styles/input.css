@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for Alfred */
+@layer components {
+  .alfred-gradient {
+    @apply bg-gradient-to-br from-blue-500 to-purple-600;
+  }
+  
+  .alfred-shadow {
+    @apply shadow-lg shadow-blue-500/25;
+  }
+  
+  .alfred-text-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+}

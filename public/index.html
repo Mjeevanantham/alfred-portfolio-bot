@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alfred - Jeeva's AI Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="alfred-avatar">
+                    <div class="avatar-circle">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="avatar-status online"></div>
+                </div>
+                <div class="header-info">
+                    <h1>Alfred</h1>
+                    <p>Jeeva's AI Assistant</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="voiceToggle" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="btn-icon" id="clearChat" title="Clear Chat">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settingsPanel" style="display: none;">
+            <div class="settings-content">
+                <h3>Voice Settings</h3>
+                <div class="setting-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="voiceEnabled" checked>
+                        <label for="voiceEnabled">Enable Voice Features</label>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <button class="btn-secondary" id="stopVoice">Stop Voice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message alfred-message">
+                    <div class="message-avatar">
+                        <div class="avatar-circle">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p>Good day! I'm Alfred, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How may I assist you today?</p>
+                        </div>
+                        <div class="message-time">Just now</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="message-avatar">
+                    <div class="avatar-circle">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble typing">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Ask Alfred about Jeeva's work, skills, or experience..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-suggestions" id="inputSuggestions">
+                    <button class="suggestion-chip" data-suggestion="What are Jeeva's main skills?">Skills</button>
+                    <button class="suggestion-chip" data-suggestion="Tell me about Jeeva's projects">Projects</button>
+                    <button class="suggestion-chip" data-suggestion="What is Jeeva's experience?">Experience</button>
+                    <button class="suggestion-chip" data-suggestion="How can I contact Jeeva?">Contact</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Input Modal -->
+        <div class="voice-modal" id="voiceModal">
+            <div class="voice-content">
+                <div class="voice-animation">
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                </div>
+                <h3>Listening...</h3>
+                <p>Speak your question to Alfred</p>
+                <button class="btn-secondary" id="stopListening">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
