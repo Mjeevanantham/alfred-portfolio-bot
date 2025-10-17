@@ -94,6 +94,17 @@ app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Debug endpoint
+app.get('/debug', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    groqApiKey: process.env.GROQ_API_KEY ? 'set' : 'missing',
+    port: process.env.PORT || 3000
+  });
+});
+
 // Socket.io for real-time chat
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);

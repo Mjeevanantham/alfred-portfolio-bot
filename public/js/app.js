@@ -35,9 +35,24 @@ class AlfredChat {
     }
     
     initializeSocket() {
+        console.log('Initializing Socket.IO connection...');
         this.socket = io();
         
+        this.socket.on('connect', () => {
+            console.log('✅ Connected to Alfred server:', this.socket.id);
+        });
+        
+        this.socket.on('connect_error', (error) => {
+            console.error('❌ Socket.IO connection error:', error);
+            this.showNotification('Failed to connect to server', 'error');
+        });
+        
+        this.socket.on('disconnect', (reason) => {
+            console.log('⚠️ Disconnected from Alfred server:', reason);
+        });
+        
         this.socket.on('alfred-response', (data) => {
+            console.log('📨 Received Alfred response:', data);
             this.hideTypingIndicator();
             this.addMessage(data.message, 'alfred');
             if (this.voiceEnabled && this.synthesis) {
@@ -46,16 +61,9 @@ class AlfredChat {
         });
         
         this.socket.on('alfred-error', (data) => {
+            console.error('❌ Alfred error:', data);
             this.hideTypingIndicator();
             this.addMessage(data.message, 'alfred');
-        });
-        
-        this.socket.on('connect', () => {
-            console.log('Connected to Alfred server');
-        });
-        
-        this.socket.on('disconnect', () => {
-            console.log('Disconnected from Alfred server');
         });
     }
     
@@ -210,6 +218,8 @@ class AlfredChat {
         const message = this.elements.messageInput.value.trim();
         if (!message) return;
         
+        console.log('📤 Sending message:', message);
+        
         // Add user message to chat
         this.addMessage(message, 'user');
         
@@ -221,13 +231,47 @@ class AlfredChat {
         this.showTypingIndicator();
         
         // Send to server
-        this.socket.emit('chat-message', {
-            message: message,
-            sessionId: this.sessionId
-        });
+        if (this.socket && this.socket.connected) {
+            console.log('📡 Sending via Socket.IO...');
+            this.socket.emit('chat-message', {
+                message: message,
+                sessionId: this.sessionId
+            });
+        } else {
+            console.error('❌ Socket not connected, falling back to fetch...');
+            // Fallback to fetch API
+            this.sendViaFetch(message);
+        }
         
         // Hide suggestions after first message
         this.elements.inputSuggestions.style.display = 'none';
+    }
+    
+    async sendViaFetch(message) {
+        try {
+            const response = await fetch('/api/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    sessionId: this.sessionId
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.hideTypingIndicator();
+                this.addMessage(data.content, 'alfred');
+            } else {
+                throw new Error('Failed to send message');
+            }
+        } catch (error) {
+            console.error('❌ Fetch error:', error);
+            this.hideTypingIndicator();
+            this.addMessage('Sorry, I encountered an error. Please try again.', 'alfred');
+        }
     }
     
     addMessage(content, sender) {
