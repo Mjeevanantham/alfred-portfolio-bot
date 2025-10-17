@@ -24,6 +24,10 @@
       "dest": "/public/$1"
     },
     {
+      "src": "/socket.io/(.*)",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }

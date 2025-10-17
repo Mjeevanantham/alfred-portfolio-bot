@@ -530,13 +530,25 @@
                     const script = document.createElement('script');
                     script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
                     script.onload = () => this.connectSocket();
+                    script.onerror = () => {
+                        console.error('Failed to load Socket.IO from CDN');
+                        this.showFallbackMessage();
+                    };
                     document.head.appendChild(script);
                 } else {
                     this.connectSocket();
                 }
             } catch (error) {
                 console.error('Failed to initialize socket:', error);
+                this.showFallbackMessage();
             }
+        }
+        
+        showFallbackMessage() {
+            // Show a message that the bot is in offline mode
+            setTimeout(() => {
+                this.addMessage('I\'m currently in offline mode. Please refresh the page to try again.', 'alfred');
+            }, 1000);
         }
         
         connectSocket() {
