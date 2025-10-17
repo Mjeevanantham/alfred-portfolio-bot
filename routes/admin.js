@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const { body, validationResult } = require('express-validator');
 const { knowledgeBase } = require('../services/knowledgeBase');
 
 const router = express.Router();
@@ -12,25 +13,16 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'alfred2024';
 // Middleware to check admin authentication
 const authenticateAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  
-  // Debug logging
-  console.log('Auth header:', authHeader);
-  console.log('Expected password:', ADMIN_PASSWORD);
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.log('No auth header or invalid format');
     return res.status(401).json({ error: 'Admin authentication required' });
   }
   
   const token = authHeader.substring(7);
-  console.log('Received token:', token);
-  
   if (token !== ADMIN_PASSWORD) {
-    console.log('Token mismatch');
     return res.status(401).json({ error: 'Invalid admin credentials' });
   }
   
-  console.log('Authentication successful');
   next();
 };
 
@@ -57,29 +49,34 @@ const upload = multer({
 });
 
 // POST /api/admin/login - Admin login
-router.post('/login', (req, res) => {
-  try {
-    const { password } = req.body;
-    
-    if (!password) {
-      return res.status(400).json({ error: 'Password is required' });
+router.post(
+  '/login',
+  [body('password').isString().isLength({ min: 8, max: 128 })],
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ error: 'Invalid input', details: errors.array() });
+      }
+
+      const { password } = req.body;
+      
+      if (password === ADMIN_PASSWORD) {
+        res.json({ 
+          success: true,
+          message: 'Admin authentication successful',
+          token: ADMIN_PASSWORD
+        });
+      } else {
+        res.status(401).json({ error: 'Invalid password' });
+      }
+      
+    } catch (error) {
+      console.error('Admin login error:', error);
+      res.status(500).json({ error: 'Login failed' });
     }
-    
-    if (password === ADMIN_PASSWORD) {
-      res.json({ 
-        success: true,
-        message: 'Admin authentication successful',
-        token: ADMIN_PASSWORD
-      });
-    } else {
-      res.status(401).json({ error: 'Invalid password' });
-    }
-    
-  } catch (error) {
-    console.error('Admin login error:', error);
-    res.status(500).json({ error: 'Login failed' });
   }
-});
+);
 
 // POST /api/admin/upload-resume - Upload resume PDF (Admin only)
 router.post('/upload-resume', authenticateAdmin, upload.single('resume'), async (req, res) => {
