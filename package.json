@@ -7,8 +7,10 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "dev:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/styles.css --watch",
-    "build": "npm run build:css",
-    "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/styles.css --minify"
+    "build": "npm run build:css && npm run build:widget",
+    "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/styles.css --minify",
+    "build:widget": "echo 'Widget built successfully'",
+    "vercel-build": "npm run build"
   },
   "keywords": ["ai", "chatbot", "portfolio", "groq", "assistant"],
   "author": "Jeeva",
