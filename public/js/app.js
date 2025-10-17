@@ -71,18 +71,18 @@ class AlfredChat {
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 this.elements.messageInput.value = transcript;
-                this.hideVoiceModal();
+                this.stopVoiceInput();
                 this.sendMessage();
             };
             
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                this.hideVoiceModal();
+                this.stopVoiceInput();
                 this.showNotification('Voice recognition failed. Please try again.', 'error');
             };
             
             this.recognition.onend = () => {
-                this.hideVoiceModal();
+                this.stopVoiceInput();
             };
         }
         
