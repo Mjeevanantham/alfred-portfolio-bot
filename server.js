@@ -3,16 +3,20 @@ const cors = require('cors');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Load environment variables first
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-// Debug: Log environment variables
-console.log('Environment check:');
-console.log('GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
-console.log('GROQ_API_KEY length:', process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.length : 0);
-console.log('PORT:', process.env.PORT);
-console.log('ADMIN_PASSWORD exists:', !!process.env.ADMIN_PASSWORD);
+// Debug: Log environment variables (disabled in production)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Environment check:');
+  console.log('GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
+  console.log('GROQ_API_KEY length:', process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.length : 0);
+  console.log('PORT:', process.env.PORT);
+  console.log('ADMIN_PASSWORD exists:', !!process.env.ADMIN_PASSWORD);
+}
 
 // Ensure environment variables are loaded
 if (!process.env.GROQ_API_KEY) {
@@ -25,31 +29,69 @@ if (!process.env.GROQ_API_KEY) {
 }
 
 const chatRoutes = require('./routes/chat');
-const dataRoutes = require('./routes/data');
 const adminRoutes = require('./routes/admin');
 const { initializeKnowledgeBase } = require('./services/knowledgeBase');
+const Alfred = require('./services/alfred');
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure allowed CORS origins (comma-separated list) or '*' by default
+const allowedOrigins = (process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim() !== '')
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : '*';
+
 const io = socketIo(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security & middleware
+app.disable('x-powered-by');
+app.set('trust proxy', 1); // for proper rate limiting behind proxies
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// CORS
+if (allowedOrigins === '*') {
+  app.use(cors());
+} else {
+  app.use(cors({ origin: allowedOrigins }));
+}
+
+// Body parsing with limits
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(express.static('public'));
 
+// Rate limiters
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // Routes
-app.use('/api/chat', chatRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatLimiter, chatRoutes);
+app.use('/api/admin', adminLimiter, adminRoutes);
 
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Health check
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // Socket.io for real-time chat
@@ -58,10 +100,27 @@ io.on('connection', (socket) => {
   
   socket.on('chat-message', async (data) => {
     try {
-      const { message, sessionId } = data;
+      if (!data || typeof data.message !== 'string' || typeof data.sessionId !== 'string') {
+        socket.emit('alfred-error', {
+          message: 'Invalid payload',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      const message = data.message.trim();
+      const sessionId = data.sessionId.trim();
+
+      if (!message || message.length > 1000 || !sessionId || sessionId.length > 128) {
+        socket.emit('alfred-error', {
+          message: 'Invalid message or session id',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
       
       // Process message through Alfred
-      const response = await require('./services/alfred').processMessage(message, sessionId);
+      const response = await Alfred.processMessage(message, sessionId);
       
       // Send response back to client
       socket.emit('alfred-response', {

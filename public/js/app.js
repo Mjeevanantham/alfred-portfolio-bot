@@ -25,6 +25,7 @@ class AlfredChat {
             voiceToggle: document.getElementById('voiceToggle'),
             clearChat: document.getElementById('clearChat'),
             settingsPanel: document.getElementById('settingsPanel'),
+            settingsToggle: document.getElementById('settingsToggle'),
             voiceModal: document.getElementById('voiceModal'),
             stopListening: document.getElementById('stopListening'),
             inputSuggestions: document.getElementById('inputSuggestions'),
@@ -110,6 +111,14 @@ class AlfredChat {
         this.elements.voiceToggle.addEventListener('click', () => this.toggleVoiceInput());
         this.elements.stopListening.addEventListener('click', () => this.stopVoiceInput());
         this.elements.stopVoice.addEventListener('click', () => this.stopAllVoice());
+
+        // Settings toggle
+        if (this.elements.settingsToggle) {
+            this.elements.settingsToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.elements.settingsPanel.classList.toggle('active');
+            });
+        }
         
         // Chat management
         this.elements.clearChat.addEventListener('click', () => this.clearChat());
@@ -128,9 +137,10 @@ class AlfredChat {
         
         // Close settings when clicking outside
         document.addEventListener('click', (e) => {
-            if (!this.elements.settingsPanel.contains(e.target) && 
-                !this.elements.settingsToggle.contains(e.target)) {
-                this.elements.settingsPanel.classList.remove('active');
+            const panel = this.elements.settingsPanel;
+            const toggle = this.elements.settingsToggle;
+            if (panel && !panel.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                panel.classList.remove('active');
             }
         });
     }
