@@ -1,0 +1,76 @@
+/* Markdown content inside message bubbles */
+.message-bubble .markdown-body {
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+.message-bubble .markdown-body p {
+  margin: 0.25rem 0;
+}
+.message-bubble .markdown-body h1,
+.message-bubble .markdown-body h2,
+.message-bubble .markdown-body h3,
+.message-bubble .markdown-body h4,
+.message-bubble .markdown-body h5,
+.message-bubble .markdown-body h6 {
+  font-weight: 700;
+  margin: 0.5rem 0 0.25rem;
+}
+.message-bubble .markdown-body h1 { font-size: 1.25rem; }
+.message-bubble .markdown-body h2 { font-size: 1.125rem; }
+.message-bubble .markdown-body h3 { font-size: 1rem; }
+.message-bubble .markdown-body ul,
+.message-bubble .markdown-body ol {
+  padding-left: 1.25rem;
+  margin: 0.375rem 0;
+}
+.message-bubble .markdown-body li {
+  margin: 0.25rem 0;
+}
+.message-bubble .markdown-body blockquote {
+  border-left: 3px solid var(--border-color);
+  margin: 0.5rem 0;
+  padding: 0.25rem 0.75rem;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.03);
+}
+@media (prefers-color-scheme: dark) {
+  .message-bubble .markdown-body blockquote {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+.message-bubble .markdown-body code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+.user-message .message-bubble .markdown-body code {
+  background: rgba(255, 255, 255, 0.18);
+}
+.message-bubble .markdown-body pre {
+  background: transparent; /* highlight.js supplies inner code colors */
+  border-radius: 8px;
+  overflow: auto;
+  margin: 0.5rem 0;
+}
+.message-bubble .markdown-body pre code {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+.message-bubble .markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+.message-bubble .markdown-body th,
+.message-bubble .markdown-body td {
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+}
+.message-bubble .markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 0.75rem 0;
+}
