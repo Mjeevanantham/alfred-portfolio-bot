@@ -1,11 +1,14 @@
 const Groq = require('groq-sdk');
-const { getRelevantContext } = require('./knowledgeBase');
+const { getRelevantContext, knowledgeBase } = require('./knowledgeBase');
 
 class Alfred {
   constructor() {
-    this.client = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
-    });
+    this.fallbackMode = process.env.ALFRED_FALLBACK_MODE === 'true';
+    this.client = this.fallbackMode
+      ? null
+      : new Groq({
+          apiKey: process.env.GROQ_API_KEY,
+        });
     this.conversationHistory = new Map(); // Store conversation history per session
   }
 
@@ -31,16 +34,25 @@ class Alfred {
         { role: 'user', content: userMessage }
       ];
       
-      // Call Groq API
-      const completion = await this.client.chat.completions.create({
-        messages: messages,
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.7,
-        max_tokens: 1000,
-        stream: false
-      });
-      
-      const response = completion.choices[0].message.content;
+      // Decide on generation path (LLM or fallback)
+      let response;
+      if (!this.fallbackMode && this.client) {
+        try {
+          const completion = await this.client.chat.completions.create({
+            messages: messages,
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.7,
+            max_tokens: 1000,
+            stream: false
+          });
+          response = completion.choices[0].message.content;
+        } catch (llmError) {
+          console.warn('LLM call failed, falling back to KB response:', llmError?.message || llmError);
+          response = this.generateFallbackResponse(userMessage, context);
+        }
+      } else {
+        response = this.generateFallbackResponse(userMessage, context);
+      }
       
       // Update conversation history
       history.push(
@@ -56,13 +68,54 @@ class Alfred {
       return {
         content: response,
         timestamp: new Date().toISOString(),
-        context: context.length > 0 ? 'Used portfolio context' : 'General response'
+        context: context.length > 0 ? 'Used portfolio context' : 'General response',
+        mode: this.fallbackMode ? 'fallback' : 'llm'
       };
       
     } catch (error) {
       console.error('Error in Alfred processMessage:', error);
       throw new Error('Failed to process message');
     }
+  }
+  
+  generateFallbackResponse(userMessage, context) {
+    const lower = userMessage.toLowerCase();
+    const parts = [];
+    const kb = knowledgeBase && knowledgeBase.data ? knowledgeBase.data : null;
+
+    if (lower.includes('skill')) {
+      const skills = kb?.skills?.length ? kb.skills.join(', ') : 'a strong set of modern development skills';
+      parts.push(`Jeeva's key skills include ${skills}.`);
+    }
+
+    if (lower.includes('project') || lower.includes('work') || lower.includes('portfolio')) {
+      const projects = kb?.projects?.length ? kb.projects.slice(0, 3).join('\n\n- ') : '';
+      if (projects) {
+        parts.push(`Recent projects:\n- ${projects}`);
+      }
+    }
+
+    if (lower.includes('experience') || lower.includes('background') || lower.includes('career')) {
+      const experience = kb?.experience?.length ? kb.experience.slice(0, 3).join('\n\n- ') : '';
+      if (experience) {
+        parts.push(`Experience highlights:\n- ${experience}`);
+      }
+    }
+
+    // If nothing matched, use trimmed context
+    if (parts.length === 0) {
+      const trimmed = (context || '').toString().slice(0, 600);
+      if (trimmed) {
+        parts.push(trimmed);
+      } else {
+        parts.push("I'm Alfred. Ask me about Jeeva's skills, projects, or experience.");
+      }
+    }
+
+    // Add a concise helpful closing
+    parts.push('If you share what you are looking for, I can point you to relevant skills or projects.');
+
+    return parts.join('\n\n');
   }
   
   buildSystemPrompt(context) {
