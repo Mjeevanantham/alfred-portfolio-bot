@@ -16,10 +16,17 @@
     /* Mobile and layout fixes */
     html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
     .app-container, .chat-container, .chat-messages, .chat-input-container { overflow-x: hidden; }
-    .chat-input-wrapper { align-items: center; }
-    #messageInput { padding-top: 2px; }
+    .chat-input-wrapper { align-items: center; gap: 0.5rem; }
+    #messageInput { padding-top: 2px; font-size: 16px; } /* prevent iOS zoom */
     .message-bubble .markdown-body img { max-width: 100%; height: auto; }
     .message-bubble pre, .message-bubble code { white-space: pre-wrap; word-break: break-word; }
+    /* Larger tap targets on mobile */
+    @media (max-width: 480px) {
+      .btn-icon { width: 2.25rem; height: 2.25rem; }
+      .send-button { width: 2.25rem; height: 2.25rem; }
+      .suggestion-chip { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+      .message-bubble .markdown-body { font-size: 1rem; }
+    }
   </style>
 </head>
 <body>

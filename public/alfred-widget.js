@@ -275,7 +275,7 @@
                 border: none;
                 outline: none;
                 color: white;
-                font-size: 14px;
+                font-size: 16px; /* prevent iOS zoom */
                 resize: none;
                 min-height: 20px;
                 max-height: 100px;
@@ -386,6 +386,8 @@
             .alfred-widget-message-bubble .markdown-body ul,
             .alfred-widget-message-bubble .markdown-body ol { padding-left: 1.25rem; margin: 0.25rem 0; }
             .alfred-widget-message-bubble .markdown-body li { margin: 0.125rem 0; }
+            .alfred-widget-message-bubble .markdown-body ul { list-style: disc inside; }
+            .alfred-widget-message-bubble .markdown-body ol { list-style: decimal inside; }
             .alfred-widget-message-bubble .markdown-body a { color: inherit; text-decoration: underline; }
             .alfred-widget-message-bubble pre {
                 background: rgba(0,0,0,0.25);
@@ -666,15 +668,28 @@
             this.scrollToBottom();
         }
         
+        // Normalize inline bullets like "Intro: * Item A * Item B" to proper lists
+        normalizeInlineLists(content) {
+            try {
+                if (!content || typeof content !== 'string') return content;
+                if (/(^|\n)\s*(?:[-*+]\s+|\d+\.[\t ]+)/.test(content)) return content;
+                let text = content.replace(/:\s*\*\s+/g, ':\n- ');
+                text = text.replace(/\s\*\s+/g, '\n- ');
+                text = text.replace(/\n{3,}/g, '\n\n');
+                return text;
+            } catch (_) { return content; }
+        }
+
         formatMessage(content) {
             // Render markdown then sanitize; fallback to linkify
             let rendered = content;
             try {
+                const normalized = this.normalizeInlineLists(content);
                 if (window.marked) {
-                    rendered = window.marked.parse(content);
+                    rendered = window.marked.parse(normalized);
                 } else {
                     const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    rendered = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1<\/a>');
+                    rendered = normalized.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1<\/a>');
                 }
             } catch (e) {}
             try {

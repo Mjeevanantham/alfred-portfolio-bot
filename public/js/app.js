@@ -361,16 +361,42 @@ class AlfredChat {
         }
     }
 
+  // Normalize assistant outputs that place list items inline
+  // Example: "Intro: * Item A * Item B" -> "Intro:\n- Item A\n- Item B"
+  normalizeInlineLists(content) {
+    try {
+      if (!content || typeof content !== 'string') return content;
+
+      // Skip if proper list markers already exist on new lines
+      if (/(^|\n)\s*(?:[-*+]\s+|\d+\.[\t ]+)/.test(content)) {
+        return content;
+      }
+
+      let text = content;
+      // Ensure a newline before the first bullet after a colon
+      text = text.replace(/:\s*\*\s+/g, ':\n- ');
+      // Convert remaining inline " * " bullets to newline bullets
+      text = text.replace(/\s\*\s+/g, '\n- ');
+      // Collapse excessive newlines
+      text = text.replace(/\n{3,}/g, '\n\n');
+      return text;
+    } catch (_) {
+      return content;
+    }
+  }
+
     formatMessage(content) {
         // Render markdown then sanitize
-        let rendered = content;
+    let rendered = content;
         try {
             if (window.marked) {
-                rendered = window.marked.parse(content);
+        const normalized = this.normalizeInlineLists(content);
+        rendered = window.marked.parse(normalized);
             } else {
                 // Simple linkify fallback
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
-                rendered = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1</a>');
+        const normalized = this.normalizeInlineLists(content);
+        rendered = normalized.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1</a>');
             }
         } catch (e) {
             rendered = content;
