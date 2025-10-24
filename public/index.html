@@ -12,6 +12,15 @@
     <!-- Syntax highlighting themes (auto-switch with color scheme) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+  <style>
+    /* Mobile and layout fixes */
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    .app-container, .chat-container, .chat-messages, .chat-input-container { overflow-x: hidden; }
+    .chat-input-wrapper { align-items: center; }
+    #messageInput { padding-top: 2px; }
+    .message-bubble .markdown-body img { max-width: 100%; height: auto; }
+    .message-bubble pre, .message-bubble code { white-space: pre-wrap; word-break: break-word; }
+  </style>
 </head>
 <body>
     <div class="app-container">
