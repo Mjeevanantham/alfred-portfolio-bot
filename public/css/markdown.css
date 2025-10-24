@@ -26,6 +26,9 @@
 .message-bubble .markdown-body li {
   margin: 0.25rem 0;
 }
+/* Ensure list-style markers are visible inside chat bubbles */
+.message-bubble .markdown-body ul { list-style: disc inside; }
+.message-bubble .markdown-body ol { list-style: decimal inside; }
 .message-bubble .markdown-body blockquote {
   border-left: 3px solid var(--border-color);
   margin: 0.5rem 0;
