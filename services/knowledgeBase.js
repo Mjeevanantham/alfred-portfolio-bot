@@ -65,7 +65,8 @@ class KnowledgeBase {
 
   async loadPortfolioData() {
     try {
-      const portfolioUrl = process.env.PORTFOLIO_URL;
+      // Default to Jeeva's live portfolio if not explicitly configured
+      const portfolioUrl = process.env.PORTFOLIO_URL || 'https://jeeva-portfolio-gamma.vercel.app';
       
       if (!portfolioUrl) {
         console.log('No portfolio URL configured, using sample data...');
@@ -90,21 +91,20 @@ class KnowledgeBase {
       $('script, style').remove();
       
       // Extract text from main content areas
-      $('main, .content, .portfolio, .about, .projects, .skills').each((i, el) => {
-        const text = $(el).text().trim();
-        if (text.length > 50) {
-          content.push(text);
-        }
+      const MAIN_SELECTORS = 'main, .content, .portfolio, .about, .projects, .skills, section, article';
+      $(MAIN_SELECTORS).each((i, el) => {
+        const text = this.cleanText($(el).text());
+        if (text.length > 50) content.push(text);
       });
       
       // If no main content found, extract from body
       if (content.length === 0) {
-        $('body').find('p, h1, h2, h3, h4, h5, h6, li').each((i, el) => {
-          const text = $(el).text().trim();
-          if (text.length > 20) {
-            content.push(text);
-          }
-        });
+        $('body')
+          .find('p, h1, h2, h3, h4, h5, h6, li')
+          .each((i, el) => {
+            const text = this.cleanText($(el).text());
+            if (text.length > 20) content.push(text);
+          });
       }
       
       this.data.portfolio = content.join('\n\n');
@@ -194,7 +194,7 @@ class KnowledgeBase {
       return 'Knowledge base not yet initialized.';
     }
     
-    const queryLower = query.toLowerCase();
+    const queryLower = (query || '').toString().toLowerCase();
     let context = '';
     
     // Check for skill-related queries
@@ -218,11 +218,31 @@ class KnowledgeBase {
     
     // Always include general resume/portfolio context for broader queries
     if (context === '') {
-      context = `Resume Summary: ${this.data.resume.substring(0, 1000)}...\n\n`;
-      context += `Portfolio Summary: ${this.data.portfolio.substring(0, 1000)}...`;
+      const resume = this.cleanText(this.data.resume).substring(0, 1000);
+      const portfolio = this.cleanText(this.data.portfolio).substring(0, 1000);
+      context = `Resume Summary: ${resume}...\n\n`;
+      context += `Portfolio Summary: ${portfolio}...`;
     }
     
     return context;
+  }
+
+  /**
+   * Remove UI filler like "Show more", trim whitespace, collapse spaces,
+   * and strip repeated ellipses so the model doesn't echo them back.
+   */
+  cleanText(input) {
+    if (!input) return '';
+    let t = input
+      .replace(/\s+/g, ' ')
+      .replace(/\b(show|see|read)\s+more\b/gi, '')
+      .replace(/\bview\s+more\b/gi, '')
+      .replace(/…+/g, ' ')
+      .replace(/\.\.\.+/g, ' ')
+      .trim();
+    // Remove isolated UI labels commonly found in portfolio templates
+    t = t.replace(/^(back|menu|home|next|previous)$/gim, '').trim();
+    return t;
   }
 
   getSampleResumeData() {

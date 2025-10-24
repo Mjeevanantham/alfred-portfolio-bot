@@ -21,8 +21,11 @@ class Alfred {
       
       const history = this.conversationHistory.get(sessionId);
       
+      // Prepare/normalize user input to reduce noise
+      const tunedUserMessage = this.normalizeUserMessage(userMessage);
+
       // Get relevant context from knowledge base
-      const context = await getRelevantContext(userMessage);
+      const context = await getRelevantContext(tunedUserMessage);
       
       // Build system prompt for Alfred
       const systemPrompt = this.buildSystemPrompt(context);
@@ -31,7 +34,7 @@ class Alfred {
       const messages = [
         { role: 'system', content: systemPrompt },
         ...history.slice(-10), // Keep last 10 messages for context
-        { role: 'user', content: userMessage }
+        { role: 'user', content: tunedUserMessage }
       ];
       
       // Decide on generation path (LLM or fallback)
@@ -41,8 +44,8 @@ class Alfred {
           const completion = await this.client.chat.completions.create({
             messages: messages,
             model: 'llama-3.3-70b-versatile',
-            temperature: 0.7,
-            max_tokens: 1000,
+            temperature: 0.5,
+            max_tokens: 400,
             stream: false
           });
           response = completion.choices[0].message.content;
@@ -56,7 +59,7 @@ class Alfred {
       
       // Update conversation history
       history.push(
-        { role: 'user', content: userMessage },
+        { role: 'user', content: tunedUserMessage },
         { role: 'assistant', content: response }
       );
       
@@ -78,44 +81,49 @@ class Alfred {
     }
   }
   
+  normalizeUserMessage(message) {
+    if (!message) return '';
+    return message
+      .replace(/\s+/g, ' ')
+      .replace(/\b(show|see|read)\s+more\b/gi, '')
+      .replace(/[“”]/g, '"')
+      .replace(/[’]/g, "'")
+      .trim();
+  }
+
   generateFallbackResponse(userMessage, context) {
-    const lower = userMessage.toLowerCase();
-    const parts = [];
+    const lower = (userMessage || '').toLowerCase();
+    const bullets = [];
     const kb = knowledgeBase && knowledgeBase.data ? knowledgeBase.data : null;
 
     if (lower.includes('skill')) {
       const skills = kb?.skills?.length ? kb.skills.join(', ') : 'a strong set of modern development skills';
-      parts.push(`Jeeva's key skills include ${skills}.`);
+      bullets.push(`Key skills: ${skills}`);
     }
 
     if (lower.includes('project') || lower.includes('work') || lower.includes('portfolio')) {
-      const projects = kb?.projects?.length ? kb.projects.slice(0, 3).join('\n\n- ') : '';
-      if (projects) {
-        parts.push(`Recent projects:\n- ${projects}`);
-      }
+      const projects = kb?.projects?.length ? kb.projects.slice(0, 3) : [];
+      projects.forEach(p => bullets.push(p));
     }
 
     if (lower.includes('experience') || lower.includes('background') || lower.includes('career')) {
-      const experience = kb?.experience?.length ? kb.experience.slice(0, 3).join('\n\n- ') : '';
-      if (experience) {
-        parts.push(`Experience highlights:\n- ${experience}`);
-      }
+      const experience = kb?.experience?.length ? kb.experience.slice(0, 3) : [];
+      experience.forEach(e => bullets.push(e));
     }
 
     // If nothing matched, use trimmed context
-    if (parts.length === 0) {
-      const trimmed = (context || '').toString().slice(0, 600);
-      if (trimmed) {
-        parts.push(trimmed);
-      } else {
-        parts.push("I'm Alfred. Ask me about Jeeva's skills, projects, or experience.");
-      }
+    if (bullets.length === 0) {
+      const trimmed = (context || '').toString().slice(0, 400);
+      if (trimmed) bullets.push(trimmed);
     }
 
-    // Add a concise helpful closing
-    parts.push('If you share what you are looking for, I can point you to relevant skills or projects.');
-
-    return parts.join('\n\n');
+    // Format as concise bullet points (max 5)
+    const formatted = bullets
+      .filter(Boolean)
+      .slice(0, 5)
+      .map(item => `- ${item}`)
+      .join('\n');
+    return formatted || "- I'm Alfred. Ask about Jeeva's skills, projects, or experience.";
   }
   
   buildSystemPrompt(context) {
@@ -137,13 +145,13 @@ CAPABILITIES:
 - Discuss technology, programming, and development topics
 - Share information about his professional background
 
-GUIDELINES:
+GUIDELINES (STRICT):
 - Always be accurate and base responses on the provided context
-- If you don't know something specific about Jeeva, say so politely
-- Keep responses concise but informative
-- Use "I" when referring to yourself as Alfred
-- Use "Jeeva" when referring to the portfolio owner
-- Be encouraging about Jeeva's work and skills
+- Answer with 3-5 concise bullets, 80 words total max
+- Bold key nouns or technologies when useful; avoid fluff
+- Never include phrases like "Show more", "See more", or long preambles
+- If you don't know something specific about Jeeva, say so briefly
+- Use "I" when referring to yourself as Alfred; use "Jeeva" for the owner
 
 Remember: You represent Jeeva's professional image, so maintain high standards in all interactions.`;
   }
