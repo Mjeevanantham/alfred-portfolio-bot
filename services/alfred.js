@@ -93,8 +93,16 @@ class Alfred {
 
   generateFallbackResponse(userMessage, context) {
     const lower = (userMessage || '').toLowerCase();
-    const bullets = [];
     const kb = knowledgeBase && knowledgeBase.data ? knowledgeBase.data : null;
+
+    // 1) If the user pasted their own project bullets, honor and format them
+    const userProjects = this.extractProjectsFromUserMessage(userMessage);
+    if (userProjects.length >= 2) {
+      return this.buildProjectsBullets(userProjects);
+    }
+
+    // 2) Otherwise, compose a concise context-based reply
+    const bullets = [];
 
     if (lower.includes('skill')) {
       const skills = kb?.skills?.length ? kb.skills.join(', ') : 'a strong set of modern development skills';
@@ -111,19 +119,74 @@ class Alfred {
       experience.forEach(e => bullets.push(e));
     }
 
-    // If nothing matched, use trimmed context
     if (bullets.length === 0) {
       const trimmed = (context || '').toString().slice(0, 400);
       if (trimmed) bullets.push(trimmed);
     }
 
-    // Format as concise bullet points (max 5)
     const formatted = bullets
       .filter(Boolean)
       .slice(0, 5)
       .map(item => `- ${item}`)
       .join('\n');
     return formatted || "- I'm Alfred. Ask about Jeeva's skills, projects, or experience.";
+  }
+
+  /**
+   * Extract project items from a user-pasted list (bullets or numbered lines).
+   * Returns an array of { title: string, description: string }.
+   */
+  extractProjectsFromUserMessage(userMessage) {
+    if (!userMessage) return [];
+    const lines = String(userMessage).split(/\r?\n/);
+    const items = [];
+
+    for (const line of lines) {
+      const bulletMatch = line.match(/^\s*(?:[\*\-\u2022]|\d+[\.)])\s+(.+)\s*$/);
+      if (!bulletMatch) continue;
+      const raw = bulletMatch[1].trim();
+
+      // Try patterns like "**Title**: Description" or "Title: Description"
+      const pairMatch = raw.match(/^\s*(?:\*\*)?(.+?)(?:\*\*)?\s*(?:[:\-—–]\s+)(.+)$/);
+      if (pairMatch) {
+        const title = pairMatch[1].replace(/\*\*/g, '').trim();
+        const description = pairMatch[2].trim();
+        if (title) items.push({ title, description });
+        continue;
+      }
+
+      // Fallback: "**Title** Description" or just a single title
+      const boldMatch = raw.match(/^\s*\*\*(.+?)\*\*\s*(.+)?$/);
+      if (boldMatch) {
+        const title = boldMatch[1].trim();
+        const description = (boldMatch[2] || '').trim();
+        if (title) items.push({ title, description });
+        continue;
+      }
+
+      const titleOnly = raw.replace(/\*\*/g, '').trim();
+      if (titleOnly) items.push({ title: titleOnly, description: '' });
+    }
+
+    return items;
+  }
+
+  buildProjectsBullets(items) {
+    const formatted = items
+      .filter(i => i && i.title)
+      .slice(0, 5)
+      .map(({ title, description }) => {
+        const shortDesc = description ? this.truncateWords(description, 18) : '';
+        return shortDesc ? `- **${title}**: ${shortDesc}` : `- **${title}**`;
+      })
+      .join('\n');
+    return formatted;
+  }
+
+  truncateWords(text, maxWords) {
+    const words = String(text || '').split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
   }
   
   buildSystemPrompt(context) {
