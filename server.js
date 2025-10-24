@@ -18,18 +18,15 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('ADMIN_PASSWORD exists:', !!process.env.ADMIN_PASSWORD);
 }
 
-// Ensure environment variables are loaded
+// Ensure environment variables are loaded (run in degraded mode if missing)
 if (!process.env.GROQ_API_KEY) {
-  console.error('❌ GROQ_API_KEY environment variable is missing!');
-  console.error('Please check your .env file and ensure it contains:');
-  console.error('GROQ_API_KEY=your_api_key_here');
-  console.error('Current working directory:', process.cwd());
-  console.error('Looking for .env file in:', path.join(process.cwd(), '.env'));
-  process.exit(1);
+  console.warn('⚠️  GROQ_API_KEY is missing. Running in fallback mode without LLM.');
+  process.env.ALFRED_FALLBACK_MODE = 'true';
 }
 
 const chatRoutes = require('./routes/chat');
 const adminRoutes = require('./routes/admin');
+const dataRoutes = require('./routes/data');
 const { initializeKnowledgeBase } = require('./services/knowledgeBase');
 const Alfred = require('./services/alfred');
 
@@ -83,6 +80,7 @@ const adminLimiter = rateLimit({
 // Routes
 app.use('/api/chat', chatLimiter, chatRoutes);
 app.use('/api/admin', adminLimiter, adminRoutes);
+app.use('/api/data', adminLimiter, dataRoutes);
 
 // Serve the main page
 app.get('/', (req, res) => {
