@@ -14,6 +14,7 @@ class AlfredChat {
         this.bindEvents();
         this.initializeUI();
         this.loadSettings();
+        this.configureMarkdown();
     }
     
     initializeElements() {
@@ -292,7 +293,7 @@ class AlfredChat {
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                        <p>${this.formatMessage(content)}</p>
+                        <div class="markdown-body">${this.formatMessage(content)}</div>
                     </div>
                     <div class="message-time">${timestamp}</div>
                 </div>
@@ -306,7 +307,7 @@ class AlfredChat {
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                        <p>${this.formatMessage(content)}</p>
+                        <div class="markdown-body">${this.formatMessage(content)}</div>
                     </div>
                     <div class="message-time">${timestamp}</div>
                 </div>
@@ -314,13 +315,82 @@ class AlfredChat {
         }
         
         this.elements.chatMessages.appendChild(messageDiv);
+        // Apply syntax highlighting to any code blocks inside the newest message
+        try {
+            if (window.hljs) {
+                const blocks = messageDiv.querySelectorAll('pre code');
+                blocks.forEach((block) => {
+                    window.hljs.highlightElement(block);
+                });
+            }
+        } catch (e) {
+            console.warn('Highlighting failed:', e);
+        }
         this.scrollToBottom();
     }
     
+    configureMarkdown() {
+        try {
+            if (window.marked) {
+                window.marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    headerIds: true,
+                    mangle: false,
+                    highlight: (code, lang) => {
+                        if (window.hljs) {
+                            if (lang && window.hljs.getLanguage(lang)) {
+                                return window.hljs.highlight(code, { language: lang }).value;
+                            }
+                            return window.hljs.highlightAuto(code).value;
+                        }
+                        return code;
+                    }
+                });
+                // Ensure links open safely by default
+                const renderer = new window.marked.Renderer();
+                renderer.link = (href, title, text) => {
+                    const t = title ? ` title="${title}"` : '';
+                    // rel includes nofollow for SEO and security
+                    return `<a href="${href}"${t} target="_blank" rel="noopener noreferrer nofollow">${text}</a>`;
+                };
+                window.marked.use({ renderer });
+            }
+        } catch (e) {
+            console.warn('Markdown configuration failed:', e);
+        }
+    }
+
     formatMessage(content) {
-        // Convert URLs to clickable links
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+        // Render markdown then sanitize
+        let rendered = content;
+        try {
+            if (window.marked) {
+                rendered = window.marked.parse(content);
+            } else {
+                // Simple linkify fallback
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                rendered = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1</a>');
+            }
+        } catch (e) {
+            rendered = content;
+        }
+        try {
+            if (window.DOMPurify) {
+                // Allow typical markdown tags and attributes used by highlight.js
+                return window.DOMPurify.sanitize(rendered, {
+                    USE_PROFILES: { html: true },
+                    ADD_ATTR: ['target', 'rel', 'class'],
+                    ALLOWED_TAGS: [
+                        'a','p','br','span','div','strong','em','del','code','pre','blockquote','hr',
+                        'ul','ol','li','h1','h2','h3','h4','h5','h6','table','thead','tbody','tr','th','td'
+                    ]
+                });
+            }
+        } catch (e) {
+            console.warn('Sanitization failed:', e);
+        }
+        return rendered;
     }
     
     showTypingIndicator() {
