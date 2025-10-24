@@ -379,6 +379,31 @@
             .alfred-widget-chat::-webkit-scrollbar-thumb:hover {
                 background: rgba(255, 255, 255, 0.5);
             }
+
+            /* Markdown rendering inside bubbles */
+            .alfred-widget-message-bubble .markdown-body { color: inherit; }
+            .alfred-widget-message-bubble .markdown-body p { margin: 0.25rem 0; }
+            .alfred-widget-message-bubble .markdown-body ul,
+            .alfred-widget-message-bubble .markdown-body ol { padding-left: 1.25rem; margin: 0.25rem 0; }
+            .alfred-widget-message-bubble .markdown-body li { margin: 0.125rem 0; }
+            .alfred-widget-message-bubble .markdown-body a { color: inherit; text-decoration: underline; }
+            .alfred-widget-message-bubble pre {
+                background: rgba(0,0,0,0.25);
+                padding: 0.75rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                white-space: pre;
+                -webkit-overflow-scrolling: touch;
+            }
+            .alfred-widget-message.user .alfred-widget-message-bubble pre { background: rgba(255,255,255,0.15); }
+            .alfred-widget-message-bubble pre code { background: transparent; padding: 0; }
+            .alfred-widget-message-bubble code {
+                background: rgba(255,255,255,0.15);
+                padding: 0.15rem 0.35rem;
+                border-radius: 4px;
+                font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+            }
+            .alfred-widget-message.user .alfred-widget-message-bubble code { background: rgba(255,255,255,0.25); }
         </style>
     `;
     
@@ -476,6 +501,7 @@
             this.initializeElements();
             this.bindEvents();
             this.initializeSocket();
+            this.configureMarkdown();
             
             // Auto-open if configured
             if (this.config.autoOpen) {
@@ -559,7 +585,7 @@
                     this.addMessage(data.message, 'alfred');
                 });
                 
-                this.socket.on('alfred-error', (data) => {
+                this.socket.on('alfred-error', () => {
                     this.addMessage('Sorry, I encountered an error. Please try again.', 'alfred');
                 });
                 
@@ -626,18 +652,97 @@
                     <i class="${avatarIcon}"></i>
                 </div>
                 <div class="alfred-widget-message-bubble">
-                    ${this.formatMessage(content)}
+                    <div class="markdown-body">${this.formatMessage(content)}</div>
                 </div>
             `;
             
             this.elements.chat.appendChild(messageDiv);
+            try {
+                if (window.hljs) {
+                    const blocks = messageDiv.querySelectorAll('pre code');
+                    blocks.forEach((block) => window.hljs.highlightElement(block));
+                }
+            } catch (_) {}
             this.scrollToBottom();
         }
         
         formatMessage(content) {
-            // Convert URLs to clickable links
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">$1</a>');
+            // Render markdown then sanitize; fallback to linkify
+            let rendered = content;
+            try {
+                if (window.marked) {
+                    rendered = window.marked.parse(content);
+                } else {
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    rendered = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1<\/a>');
+                }
+            } catch (e) {}
+            try {
+                if (window.DOMPurify) {
+                    return window.DOMPurify.sanitize(rendered, {
+                        USE_PROFILES: { html: true },
+                        ADD_ATTR: ['target','rel','class'],
+                        ALLOWED_TAGS: ['a','p','br','span','div','strong','em','del','code','pre','blockquote','hr','ul','ol','li','h1','h2','h3','h4','h5','h6','table','thead','tbody','tr','th','td']
+                    });
+                }
+            } catch (e) {}
+            return rendered;
+        }
+
+        // Load libraries and configure markdown rendering
+        configureMarkdown() {
+            const ensureScript = (src) => new Promise((resolve) => {
+                const exists = Array.from(document.scripts).some(s => s.src === src);
+                if (exists) return resolve();
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = resolve;
+                document.head.appendChild(script);
+            });
+            const ensureLink = (href, media) => {
+                const exists = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l => l.href === href);
+                if (exists) return;
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = href;
+                if (media) link.media = media;
+                document.head.appendChild(link);
+            };
+            const markedUrl = 'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js';
+            const purifyUrl = 'https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js';
+            const hljsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+            // Add highlight.js themes for light/dark
+            ensureLink('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css', '(prefers-color-scheme: light)');
+            ensureLink('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css', '(prefers-color-scheme: dark)');
+            Promise.all([ensureScript(markedUrl), ensureScript(purifyUrl), ensureScript(hljsUrl)])
+                .then(() => {
+                    try {
+                        if (window.marked) {
+                            window.marked.setOptions({
+                                gfm: true,
+                                breaks: true,
+                                headerIds: true,
+                                mangle: false,
+                                highlight: (code, lang) => {
+                                    if (window.hljs) {
+                                        if (lang && window.hljs.getLanguage(lang)) {
+                                            return window.hljs.highlight(code, { language: lang }).value;
+                                        }
+                                        return window.hljs.highlightAuto(code).value;
+                                    }
+                                    return code;
+                                }
+                            });
+                            const renderer = new window.marked.Renderer();
+                            renderer.link = (href, title, text) => {
+                                const t = title ? ` title="${title}"` : '';
+                                return `<a href="${href}"${t} target="_blank" rel="noopener noreferrer nofollow">${text}<\/a>`;
+                            };
+                            window.marked.use({ renderer });
+                        }
+                    } catch (e) {}
+                });
         }
         
         autoResizeTextarea() {
