@@ -1,4 +1,4 @@
-# 🚀 Vercel Deployment Guide for Alfred Portfolio Bot
+# 🚀 Vercel Deployment Guide for JIA Portfolio Bot
 
 ## Prerequisites
 
@@ -155,4 +155,4 @@ If you encounter issues:
 
 ---
 
-🎉 **Your Alfred bot is now live and ready to help visitors learn about your work!**
+🎉 **Your JIA bot is now live and ready to help visitors learn about your work!**

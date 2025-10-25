@@ -4,7 +4,7 @@ const Alfred = require('../services/alfred');
 
 const router = express.Router();
 
-// POST /api/chat/message - Send a message to Alfred
+// POST /api/chat/message - Send a message to JIA
 router.post(
   '/message',
   [
