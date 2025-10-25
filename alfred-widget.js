@@ -39,7 +39,7 @@
     // CSS Styles - Injected automatically
     const widgetCSS = `
         <style id="alfred-widget-styles">
-            /* Alfred Bot Widget Styles */
+            /* JIA Bot Widget Styles */
             .alfred-widget { position: fixed; bottom: 20px; right: 20px; z-index: 10000; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
             .alfred-widget-toggle { width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4); transition: all 0.3s ease; position: relative; }
             .alfred-widget-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6); }
@@ -86,6 +86,8 @@
             .alfred-widget-message-bubble .markdown-body { color: inherit; }
             .alfred-widget-message-bubble .markdown-body p { margin: 0.25rem 0; }
             .alfred-widget-message-bubble .markdown-body ul, .alfred-widget-message-bubble .markdown-body ol { padding-left: 1.25rem; margin: 0.25rem 0; }
+            .alfred-widget-message-bubble .markdown-body ul { list-style: disc inside; }
+            .alfred-widget-message-bubble .markdown-body ol { list-style: decimal inside; }
             .alfred-widget-message-bubble .markdown-body li { margin: 0.125rem 0; }
             .alfred-widget-message-bubble .markdown-body a { color: inherit; text-decoration: underline; }
             .alfred-widget-message-bubble pre { background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 8px; overflow-x: auto; white-space: pre; -webkit-overflow-scrolling: touch; }
@@ -113,7 +115,7 @@
                             <i class="fas fa-robot"></i>
                         </div>
                         <div>
-                            <h3 class="alfred-widget-title">Alfred</h3>
+                            <h3 class="alfred-widget-title">JIA</h3>
                             <p class="alfred-widget-subtitle">Jeeva's AI Assistant</p>
                         </div>
                     </div>
@@ -125,7 +127,7 @@
                 <div class="alfred-widget-content">
                     <div class="alfred-widget-greeting">
                         <h3>Hello! 👋</h3>
-                        <p>I'm Alfred, Jeeva's AI assistant. Ask me anything about his work, skills, or experience!</p>
+                        <p>I'm JIA, Jeeva's AI assistant. Ask me anything about his work, skills, or experience!</p>
                     </div>
                     
                     <div class="alfred-widget-chat" id="alfredChat">
@@ -134,14 +136,14 @@
                                 <i class="fas fa-robot"></i>
                             </div>
                             <div class="alfred-widget-message-bubble">
-                                Hi there! I'm Alfred, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How can I assist you today?
+                                Hi there! I'm JIA, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How can I assist you today?
                             </div>
                         </div>
                     </div>
                     
                     <div class="alfred-widget-input-area">
                         <div class="alfred-widget-input-wrapper">
-                            <textarea class="alfred-widget-input" id="alfredInput" placeholder="Ask Alfred about Jeeva's work..." rows="1"></textarea>
+                            <textarea class="alfred-widget-input" id="alfredInput" placeholder="Ask JIA about Jeeva's work..." rows="1"></textarea>
                             <button class="alfred-widget-send" id="alfredSend"><i class="fas fa-paper-plane"></i></button>
                         </div>
                         <div class="alfred-widget-suggestions">
@@ -260,14 +262,14 @@
                 });
 
                 this.socket.on('connect', () => {
-                    console.log('Connected to Alfred server');
+                    console.log('Connected to JIA server');
                 });
 
                 this.socket.on('disconnect', () => {
-                    console.log('Disconnected from Alfred server');
+                    console.log('Disconnected from JIA server');
                 });
             } catch (error) {
-                console.error('Failed to connect to Alfred server:', error);
+                console.error('Failed to connect to JIA server:', error);
             }
         }
 

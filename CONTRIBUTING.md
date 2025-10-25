@@ -1,6 +1,6 @@
-# Contributing to Alfred Portfolio Bot
+# Contributing to JIA Portfolio Bot
 
-Thank you for your interest in contributing to Alfred! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to JIA! This document provides guidelines for contributing to the project.
 
 ## 🚀 Getting Started
 
@@ -194,5 +194,5 @@ Contributors will be recognized in:
 - Release notes
 - Project documentation
 
-Thank you for contributing to Alfred! 🎩
+Thank you for contributing to JIA! 🤖
 

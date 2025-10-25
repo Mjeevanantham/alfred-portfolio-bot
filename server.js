@@ -159,8 +159,8 @@ async function startServer() {
     
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
-      console.log(`🚀 Alfred Portfolio Bot running on port ${PORT}`);
-      console.log(`📱 Open http://localhost:${PORT} to chat with Alfred`);
+      console.log(`🚀 JIA Portfolio Bot running on port ${PORT}`);
+      console.log(`📱 Open http://localhost:${PORT} to chat with JIA`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

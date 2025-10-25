@@ -1,4 +1,4 @@
-# Alfred Portfolio Bot - Setup Instructions
+# JIA Portfolio Bot - Setup Instructions
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ mkdir -p data
 cp /path/to/your/resume.pdf data/resume.pdf
 ```
 
-### 5. Start Alfred
+### 5. Start JIA
 
 ```bash
 # Start the server
@@ -66,7 +66,7 @@ npm start
 npm run dev
 ```
 
-### 6. Open Alfred
+### 6. Open JIA
 
 Open your browser and go to: `http://localhost:3000`
 
@@ -74,7 +74,7 @@ Open your browser and go to: `http://localhost:3000`
 
 1. **Upload Resume**: Use the settings panel (gear icon) to upload your resume PDF
 2. **Set Portfolio URL**: Enter your portfolio website URL in settings
-3. **Test Alfred**: Try asking "What are Jeeva's skills?" or "Tell me about Jeeva's projects"
+3. **Test JIA**: Try asking "What are Jeeva's skills?" or "Tell me about Jeeva's projects"
 
 ## Troubleshooting
 
@@ -103,9 +103,9 @@ Open your browser and go to: `http://localhost:3000`
 
 ## Next Steps
 
-- Customize Alfred's personality in `services/alfred.js`
+- Customize JIA's personality in `services/alfred.js`
 - Add more knowledge extraction patterns
 - Deploy to your preferred hosting platform
 - Set up custom domain and SSL certificate
 
-Happy chatting with Alfred! 🎩
+Happy chatting with JIA! 🤖

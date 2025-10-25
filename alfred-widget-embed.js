@@ -27,7 +27,7 @@
                             <i class="fas fa-robot"></i>
                         </div>
                         <div>
-                            <h3 class="alfred-widget-title">Alfred</h3>
+                            <h3 class="alfred-widget-title">JIA</h3>
                             <p class="alfred-widget-subtitle">Jeeva's AI Assistant</p>
                         </div>
                     </div>
@@ -39,7 +39,7 @@
                 <div class="alfred-widget-content">
                     <div class="alfred-widget-greeting">
                         <h3>Hello! 👋</h3>
-                        <p>I'm Alfred, Jeeva's AI assistant. Ask me anything about his work, skills, or experience!</p>
+                        <p>I'm JIA, Jeeva's AI assistant. Ask me anything about his work, skills, or experience!</p>
                     </div>
                     
                     <div class="alfred-widget-chat" id="alfredChat">
@@ -48,7 +48,7 @@
                                 <i class="fas fa-robot"></i>
                             </div>
                             <div class="alfred-widget-message-bubble">
-                                Hi there! I'm Alfred, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How can I assist you today?
+                                Hi there! I'm JIA, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How can I assist you today?
                             </div>
                         </div>
                     </div>
@@ -58,7 +58,7 @@
                             <textarea 
                                 class="alfred-widget-input" 
                                 id="alfredInput" 
-                                placeholder="Ask Alfred about Jeeva's work..."
+                                placeholder="Ask JIA about Jeeva's work..."
                                 rows="1"
                             ></textarea>
                             <button class="alfred-widget-send" id="alfredSend">

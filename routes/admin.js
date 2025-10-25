@@ -186,7 +186,7 @@ router.post('/reinitialize', authenticateAdmin, async (req, res) => {
   }
 });
 
-// POST /api/admin/update-settings - Update Alfred's settings (Admin only)
+// POST /api/admin/update-settings - Update JIA's settings (Admin only)
 router.post('/update-settings', authenticateAdmin, async (req, res) => {
   try {
     const { voiceEnabled, personality, welcomeMessage } = req.body;
@@ -195,7 +195,7 @@ router.post('/update-settings', authenticateAdmin, async (req, res) => {
     const settings = {
       voiceEnabled: voiceEnabled !== undefined ? voiceEnabled : true,
       personality: personality || 'professional',
-      welcomeMessage: welcomeMessage || 'Good day! I\'m Alfred, Jeeva\'s personal AI assistant. How may I assist you today?'
+      welcomeMessage: welcomeMessage || 'Good day! I\'m JIA, Jeeva\'s personal AI assistant. How may I assist you today?'
     };
     
     // Save settings to file or database
@@ -221,7 +221,7 @@ router.get('/settings', authenticateAdmin, async (req, res) => {
     let settings = {
       voiceEnabled: true,
       personality: 'professional',
-      welcomeMessage: 'Good day! I\'m Alfred, Jeeva\'s personal AI assistant. How may I assist you today?'
+      welcomeMessage: 'Good day! I\'m JIA, Jeeva\'s personal AI assistant. How may I assist you today?'
     };
     
     try {

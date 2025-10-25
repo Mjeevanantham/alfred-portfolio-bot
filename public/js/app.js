@@ -1,4 +1,4 @@
-class AlfredChat {
+class JIAChat {
     constructor() {
         this.socket = null;
         this.sessionId = this.generateSessionId();
@@ -40,7 +40,7 @@ class AlfredChat {
         this.socket = io();
         
         this.socket.on('connect', () => {
-            console.log('✅ Connected to Alfred server:', this.socket.id);
+            console.log('✅ Connected to JIA server:', this.socket.id);
         });
         
         this.socket.on('connect_error', (error) => {
@@ -49,11 +49,11 @@ class AlfredChat {
         });
         
         this.socket.on('disconnect', (reason) => {
-            console.log('⚠️ Disconnected from Alfred server:', reason);
+            console.log('⚠️ Disconnected from JIA server:', reason);
         });
         
         this.socket.on('alfred-response', (data) => {
-            console.log('📨 Received Alfred response:', data);
+            console.log('📨 Received JIA response:', data);
             this.hideTypingIndicator();
             this.addMessage(data.message, 'alfred');
             if (this.voiceEnabled && this.synthesis) {
@@ -62,7 +62,7 @@ class AlfredChat {
         });
         
         this.socket.on('alfred-error', (data) => {
-            console.error('❌ Alfred error:', data);
+            console.error('❌ JIA error:', data);
             this.hideTypingIndicator();
             this.addMessage(data.message, 'alfred');
         });
@@ -582,5 +582,5 @@ class AlfredChat {
 
 // Initialize the chat when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new AlfredChat();
+    new JIAChat();
 });

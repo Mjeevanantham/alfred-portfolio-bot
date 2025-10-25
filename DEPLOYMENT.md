@@ -1,4 +1,4 @@
-# Alfred Portfolio Bot - Vercel Deployment
+# JIA Portfolio Bot - Vercel Deployment
 
 ## Environment Variables
 

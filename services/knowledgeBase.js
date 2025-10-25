@@ -78,7 +78,7 @@ class KnowledgeBase {
       const response = await axios.get(portfolioUrl, {
         timeout: 10000,
         headers: {
-          'User-Agent': 'Alfred Portfolio Bot/1.0'
+          'User-Agent': 'JIA Portfolio Bot/1.0'
         }
       });
       
