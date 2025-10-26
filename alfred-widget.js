@@ -251,7 +251,18 @@
 
         connectSocket() {
             try {
-                this.socket = io(this.config.serverUrl);
+                const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+                if (!isLocal && !this.config.serverUrl) {
+                    this.socket = null;
+                    return;
+                }
+
+                this.socket = io(this.config.serverUrl, {
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    timeout: 5000
+                });
 
                 this.socket.on('alfred-response', (data) => {
                     this.addMessage(data.message, 'alfred');
@@ -263,6 +274,10 @@
 
                 this.socket.on('connect', () => {
                     console.log('Connected to JIA server');
+                });
+
+                this.socket.on('connect_error', (err) => {
+                    console.warn('Socket connect_error; using HTTP fallback.', err?.message || err);
                 });
 
                 this.socket.on('disconnect', () => {
@@ -285,12 +300,17 @@
             this.elements.input.value = '';
             this.autoResizeTextarea();
 
-            if (this.socket) {
+            if (this.socket && this.socket.connected) {
                 this.socket.emit('chat-message', { message, sessionId: this.sessionId });
             } else {
-                setTimeout(() => {
-                    this.addMessage('I apologize, but I\'m currently unable to connect to the server. Please try again later.', 'alfred');
-                }, 1000);
+                fetch(`${this.config.serverUrl}/api/chat/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, sessionId: this.sessionId })
+                })
+                .then(res => res.ok ? res.json() : Promise.reject(new Error('HTTP error')))
+                .then(data => this.addMessage(data.content, 'alfred'))
+                .catch(() => this.addMessage('Sorry, I encountered an error. Please try again.', 'alfred'));
             }
         }
 

@@ -37,15 +37,40 @@ class JIAChat {
     
     initializeSocket() {
         console.log('Initializing Socket.IO connection...');
-        this.socket = io();
+
+        // Prefer HTTP API on production to avoid noisy socket errors on platforms
+        // that do not support WebSockets. Enable sockets only on localhost or
+        // when explicitly forced with ?useSocket=1.
+        let shouldUseSocket = false;
+        try {
+            const host = window.location.hostname;
+            const params = new URLSearchParams(window.location.search);
+            const force = params.get('useSocket') === '1';
+            shouldUseSocket = force || host === 'localhost' || host === '127.0.0.1';
+        } catch (_) {
+            shouldUseSocket = false;
+        }
+
+        if (!shouldUseSocket || typeof io === 'undefined') {
+            // Skip socket connection in production; HTTP fallback will be used.
+            this.socket = null;
+            return;
+        }
+
+        this.socket = io({
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 5000
+        });
         
         this.socket.on('connect', () => {
             console.log('✅ Connected to JIA server:', this.socket.id);
         });
         
         this.socket.on('connect_error', (error) => {
-            console.error('❌ Socket.IO connection error:', error);
-            this.showNotification('Failed to connect to server', 'error');
+            // Log silently; rely on HTTP fallback for UX
+            console.warn('Socket.IO connect_error, using HTTP fallback:', error?.message || error);
         });
         
         this.socket.on('disconnect', (reason) => {
