@@ -66,7 +66,7 @@ class KnowledgeBase {
   async loadPortfolioData() {
     try {
       // Default to Jeeva's live portfolio if not explicitly configured
-      const portfolioUrl = process.env.PORTFOLIO_URL || 'https://jeeva-portfolio-gamma.vercel.app';
+      const portfolioUrl = process.env.PORTFOLIO_URL || 'https://www.jeevanantham.site';
       
       if (!portfolioUrl) {
         console.log('No portfolio URL configured, using sample data...');
@@ -127,26 +127,50 @@ class KnowledgeBase {
   }
 
   extractSkills() {
-    const skillsText = this.data.resume + ' ' + this.data.portfolio;
+    const skillsText = String(this.data.resume || '') + ' ' + String(this.data.portfolio || '');
     const commonSkills = [
-      'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'C#',
-      'HTML', 'CSS', 'SASS', 'SCSS', 'Bootstrap', 'Tailwind CSS',
-      'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Firebase',
-      'AWS', 'Azure', 'Google Cloud', 'Docker', 'Kubernetes',
-      'Git', 'GitHub', 'GitLab', 'CI/CD', 'Jenkins',
-      'Express.js', 'Next.js', 'Vue.js', 'Angular', 'Svelte',
-      'REST API', 'GraphQL', 'WebSocket', 'Microservices',
-      'Machine Learning', 'AI', 'Data Science', 'TensorFlow', 'PyTorch'
+      // Core
+      'JavaScript', 'TypeScript', 'Node.js', 'React', 'Next.js', 'NestJS',
+      'Flutter', 'Dart', 'Redux', 'Redux Saga',
+      // Styling / UI
+      'HTML', 'CSS', 'SASS', 'SCSS', 'Tailwind CSS', 'Bootstrap',
+      // Backend / APIs
+      'Express.js', 'REST API', 'GraphQL', 'Microservices', 'RBAC',
+      // Databases
+      'MongoDB', 'PostgreSQL', 'MySQL', 'Prisma ORM', 'Redis', 'Firebase',
+      // DevOps / Cloud
+      'Docker', 'CI/CD', 'Server Deployment', 'AWS', 'Azure', 'Google Cloud',
+      // Other
+      'Git', 'GitHub', 'GitLab', 'Jenkins', 'ServiceNow', 'Performance Optimization'
     ];
-    
+
+    const containsFlexible = (haystack, skill) => {
+      try {
+        const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Allow optional whitespace between alphanumerics to handle OCR/formatting
+        const pattern = escaped
+          .split('')
+          .map(ch => (/^[a-z0-9]$/i.test(ch) ? `${ch}\\s*` : ch))
+          .join('');
+        const re = new RegExp(pattern, 'i');
+        return re.test(haystack);
+      } catch (_) {
+        return false;
+      }
+    };
+
     const foundSkills = [];
-    commonSkills.forEach(skill => {
-      if (skillsText.toLowerCase().includes(skill.toLowerCase())) {
+    const haystack = skillsText;
+    commonSkills.forEach((skill) => {
+      if (
+        haystack.toLowerCase().includes(skill.toLowerCase()) ||
+        containsFlexible(haystack, skill)
+      ) {
         foundSkills.push(skill);
       }
     });
-    
-    return foundSkills;
+
+    return Array.from(new Set(foundSkills));
   }
 
   extractProjects() {
@@ -246,61 +270,65 @@ class KnowledgeBase {
   }
 
   getSampleResumeData() {
-    return `JEEVA - SOFTWARE DEVELOPER
+    return `NAME: Jeevanantham Mahalingam (Jeeva)
+LOCATION: Coimbatore, Tamil Nadu, India
+CONTACT: mjeevanantham04@gmail.com | +91 88078 25309 | www.jeevanantham.site
+PROFILES: LinkedIn | GitHub
 
-EXPERIENCE:
-- Senior Software Developer at TechCorp (2022-Present)
-  • Developed full-stack web applications using React, Node.js, and MongoDB
-  • Led a team of 5 developers in building scalable microservices
-  • Implemented CI/CD pipelines using Docker and Kubernetes
+PROFILE SUMMARY
+- Creative full‑stack developer building fast, user‑friendly web and mobile apps.
+- Trusted problem‑solver delivering reliable, growth‑ready solutions and performance wins.
 
-- Software Developer at StartupXYZ (2020-2022)
-  • Built responsive web applications using modern JavaScript frameworks
-  • Collaborated with design team to create intuitive user interfaces
-  • Optimized application performance resulting in 40% faster load times
+PROFESSIONAL EXPERIENCE
+Aaludra Technology Solutions — Junior Software Engineer (Aug 2024 – Present)
+Projects:
+- HRMS System (Next.js): Strengthened frontend with Next.js + Redux; created reusable components for smoother UX.
+- Static Website (HTML/CSS/JS/PHP): Delivered a responsive, user‑friendly site with 100 Lighthouse SEO in 15 days.
+- Ticketing Tool (Next.js): Pixel‑perfect responsive UI; improved load times with lazy loading and dynamic imports.
+- Customer Food Delivery App (Flutter/Dart): OTP login, real‑time tracking, wallet payments; added API rate limiting.
 
-SKILLS:
-- Frontend: React, Vue.js, TypeScript, HTML5, CSS3, Tailwind CSS
-- Backend: Node.js, Express.js, Python, Django, FastAPI
-- Databases: MongoDB, PostgreSQL, Redis
-- Cloud: AWS, Google Cloud Platform, Docker, Kubernetes
-- Tools: Git, GitHub, Jenkins, VS Code, Figma
+Aaludra Technology Solutions — Software Engineer Intern (Oct 2023 – Aug 2024)
+Focus:
+- Advanced from HTML/CSS/JS to Node.js; built scalable systems with performance focus.
+- Hands‑on deployments with Docker and cloud; improved production reliability.
+- Wrote clean, maintainable code to reduce technical debt; trained in ServiceNow.
+Projects:
+- Recruitment Platform (Node.js): Primary backend dev; robust REST API for candidates and employers.
+- eSim SaaS (NestJS): Optimized queries and APIs (~30% faster); tenant‑aware time formatting; dynamic tenant emails.
+- CRM System (NestJS + Docker): Real‑time Employee/Opportunity GraphQL API; led Dockerization and RBAC design.
 
-EDUCATION:
-- Bachelor of Computer Science, University of Technology (2018-2022)
-- Relevant Coursework: Data Structures, Algorithms, Software Engineering
+ACHIEVEMENTS
+- 50+ APIs powering CRM systems for 500+ users.
+- 6+ production modules deployed, reliable and scalable.
 
-PROJECTS:
-- E-commerce Platform: Full-stack application with React frontend and Node.js backend
-- Task Management App: Real-time collaborative tool with WebSocket integration
-- Data Visualization Dashboard: Interactive charts using D3.js and React`;
+TECHNICAL SKILLS
+- Languages/Frameworks: Node.js, NestJS, Next.js, React, Flutter, Dart, JavaScript, TypeScript, HTML, CSS, SCSS, Redux, Saga, GraphQL
+- Databases & ORM: MongoDB, PostgreSQL, Prisma ORM
+- Cloud & DevOps: Docker, Server Deployment, CI/CD
+- Capabilities: REST API Development, Microservices, Performance Optimization, Code Quality
+
+ADDITIONAL
+- Skills: Java (Intermediate), ServiceNow (Intermediate), Computer Networking (Intermediate), Figma (Beginner)
+- Languages: English (Fluent), Tamil (Native)
+
+EDUCATION
+Bachelor of Technology, Computer Science and Business Systems — 7.8 GPA
+Bannari Amman Institute of Technology (Anna University) (2020–2024)`;
   }
 
   getSamplePortfolioData() {
-    return `Welcome to Jeeva's Portfolio
+    return `Jeeva's Portfolio — www.jeevanantham.site
 
-ABOUT ME:
-I'm a passionate software developer with 4+ years of experience building scalable web applications. I specialize in full-stack development with a focus on modern JavaScript frameworks and cloud technologies.
+ABOUT
+- Full‑stack & Flutter developer focused on clean architecture and performance.
+- Builds scalable web/mobile apps; collaborates closely with stakeholders.
 
-MY WORK:
-- Built 20+ web applications serving thousands of users
-- Expertise in React, Node.js, and cloud deployment
-- Passionate about clean code and user experience
-- Open source contributor and tech blogger
+HIGHLIGHTS
+- 50+ APIs shipped; 6+ production modules; ~30% API performance gains.
+- Tech: Next.js, React, TypeScript, Node.js, NestJS, GraphQL, Flutter, Dart, PostgreSQL, MongoDB, Prisma, Docker.
 
-RECENT PROJECTS:
-1. E-commerce Platform - A full-featured online store with payment integration
-2. Task Management App - Collaborative project management tool
-3. Data Analytics Dashboard - Real-time data visualization platform
-
-TECHNOLOGIES:
-Frontend: React, Vue.js, TypeScript, HTML5, CSS3
-Backend: Node.js, Python, Express.js, Django
-Database: MongoDB, PostgreSQL, Redis
-Cloud: AWS, Google Cloud, Docker, Kubernetes
-
-CONTACT:
-Ready to discuss your next project or collaboration opportunities.`;
+CONTACT
+Email: mjeevanantham04@gmail.com | Phone: +91 88078 25309 | Site: www.jeevanantham.site`;
   }
 }
 
