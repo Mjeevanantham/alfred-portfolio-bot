@@ -39,7 +39,7 @@
     // CSS Styles - Injected automatically
     const widgetCSS = `
         <style id="alfred-widget-styles">
-            /* JIA Bot Widget Styles */
+            /* JIA Bot Widget Styles - Clean, Intercom-like */
             .alfred-widget {
                 position: fixed;
                 bottom: 20px;
@@ -47,7 +47,7 @@
                 z-index: 10000;
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
-            
+
             .alfred-widget-toggle {
                 width: 60px;
                 height: 60px;
@@ -58,327 +58,107 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: #fff;
                 font-size: 24px;
-                box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
-                transition: all 0.3s ease;
+                box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35);
+                transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
                 position: relative;
             }
-            
-            .alfred-widget-toggle:hover {
-                transform: scale(1.1);
-                box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6);
-            }
-            
-            .alfred-widget-toggle.active {
-                background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
-            }
-            
+
+            .alfred-widget-toggle:hover { transform: scale(1.06); box-shadow: 0 14px 34px rgba(37, 99, 235, 0.45); }
+            .alfred-widget-toggle.active { background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); }
+
             .alfred-widget-toggle .pulse {
-                position: absolute;
-                top: -2px;
-                left: -2px;
-                right: -2px;
-                bottom: -2px;
-                border-radius: 50%;
-                background: rgba(37, 99, 235, 0.3);
+                position: absolute; inset: -2px; border-radius: 50%;
+                background: rgba(37, 99, 235, 0.28);
                 animation: alfred-pulse 2s infinite;
             }
-            
-            @keyframes alfred-pulse {
-                0% {
-                    transform: scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: scale(1.4);
-                    opacity: 0;
-                }
-            }
-            
+            @keyframes alfred-pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+
+            /* Floating panel */
             .alfred-widget-panel {
                 position: fixed;
-                top: 0;
-                right: -400px;
-                width: 400px;
-                height: 100vh;
-                background: #1e293b;
-                color: white;
-                transition: right 0.3s ease;
+                bottom: 90px;
+                right: 20px;
+                width: 380px;
+                max-width: calc(100vw - 40px);
+                height: min(70vh, 620px);
+                background: #ffffff;
+                color: #0f172a;
+                border-radius: 16px;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+                box-shadow: 0 24px 60px rgba(2, 6, 23, 0.18), 0 8px 18px rgba(2, 6, 23, 0.12);
                 z-index: 10001;
                 display: flex;
                 flex-direction: column;
-                box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+                opacity: 0;
+                transform: translateY(12px) scale(.98);
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
             }
-            
-            .alfred-widget-panel.open {
-                right: 0;
-            }
-            
+            .alfred-widget-panel.open { opacity: 1; transform: translateY(0) scale(1); visibility: visible; pointer-events: auto; }
+
             .alfred-widget-header {
-                padding: 20px;
-                background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+                padding: 12px 14px;
+                background: #ffffff;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
             }
-            
-            .alfred-widget-header-left {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-            
-            .alfred-widget-avatar {
-                width: 40px;
-                height: 40px;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                backdrop-filter: blur(10px);
-                border: 2px solid rgba(255, 255, 255, 0.3);
-            }
-            
-            .alfred-widget-title {
-                font-size: 18px;
-                font-weight: 600;
-                margin: 0;
-            }
-            
-            .alfred-widget-subtitle {
-                font-size: 12px;
-                opacity: 0.9;
-                margin: 0;
-            }
-            
-            .alfred-widget-close {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 20px;
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 4px;
-                transition: background 0.2s ease;
-            }
-            
-            .alfred-widget-close:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
-            
-            .alfred-widget-content {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            }
-            
-            .alfred-widget-greeting {
-                padding: 20px;
-                text-align: center;
-                background: rgba(255, 255, 255, 0.05);
-            }
-            
-            .alfred-widget-greeting h3 {
-                font-size: 20px;
-                margin: 0 0 8px 0;
-                font-weight: 600;
-            }
-            
-            .alfred-widget-greeting p {
-                font-size: 14px;
-                opacity: 0.8;
-                margin: 0;
-            }
-            
-            .alfred-widget-chat {
-                flex: 1;
-                padding: 20px;
-                overflow-y: auto;
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
-            
-            .alfred-widget-message {
-                display: flex;
-                gap: 12px;
-                align-items: flex-start;
-            }
-            
-            .alfred-widget-message.user {
-                flex-direction: row-reverse;
-            }
-            
-            .alfred-widget-message-avatar {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-            
-            .alfred-widget-message.alfred .alfred-widget-message-avatar {
-                background: linear-gradient(135deg, #2563eb, #3b82f6);
-                color: white;
-            }
-            
-            .alfred-widget-message.user .alfred-widget-message-avatar {
-                background: linear-gradient(135deg, #64748b, #475569);
-                color: white;
-            }
-            
-            .alfred-widget-message-bubble {
-                max-width: 80%;
-                padding: 12px 16px;
-                border-radius: 18px;
-                font-size: 14px;
-                line-height: 1.4;
-            }
-            
-            .alfred-widget-message.alfred .alfred-widget-message-bubble {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-            }
-            
-            .alfred-widget-message.user .alfred-widget-message-bubble {
-                background: linear-gradient(135deg, #2563eb, #3b82f6);
-                color: white;
-            }
-            
-            .alfred-widget-input-area {
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.05);
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .alfred-widget-input-wrapper {
-                display: flex;
-                gap: 12px;
-                align-items: flex-end;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 24px;
-                padding: 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-            
-            .alfred-widget-input {
-                flex: 1;
-                background: none;
-                border: none;
-                outline: none;
-                color: white;
-                font-size: 16px; /* prevent iOS zoom */
-                resize: none;
-                min-height: 20px;
-                max-height: 100px;
-                font-family: inherit;
-            }
-            
-            .alfred-widget-input::placeholder {
-                color: rgba(255, 255, 255, 0.6);
-            }
-            
-            .alfred-widget-send {
-                width: 36px;
-                height: 36px;
-                background: linear-gradient(135deg, #2563eb, #3b82f6);
-                border: none;
-                border-radius: 50%;
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                flex-shrink: 0;
-            }
-            
-            .alfred-widget-send:hover {
-                transform: scale(1.1);
-            }
-            
-            .alfred-widget-suggestions {
-                display: flex;
-                gap: 8px;
-                margin-top: 12px;
-                flex-wrap: wrap;
-            }
-            
-            .alfred-widget-suggestion {
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                color: white;
-                padding: 6px 12px;
-                border-radius: 16px;
-                font-size: 12px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .alfred-widget-suggestion:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: translateY(-1px);
-            }
-            
-            .alfred-widget-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 10000;
-                opacity: 0;
-                visibility: hidden;
-                transition: all 0.3s ease;
-            }
-            
-            .alfred-widget-overlay.open {
-                opacity: 1;
-                visibility: visible;
-            }
-            
+            .alfred-widget-header-left { display: flex; align-items: center; gap: 10px; }
+            .alfred-widget-avatar { width: 28px; height: 28px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 1px solid rgba(37, 99, 235, 0.35); color: #1d4ed8; }
+            .alfred-widget-title { font-size: 14px; font-weight: 600; margin: 0; line-height: 1; color: #0f172a; }
+            .alfred-widget-subtitle { font-size: 12px; margin: 2px 0 0 0; color: #64748b; }
+
+            .alfred-widget-close { background: none; border: none; color: #334155; font-size: 18px; cursor: pointer; padding: 6px; border-radius: 6px; transition: background .15s ease; }
+            .alfred-widget-close:hover { background: rgba(15, 23, 42, 0.06); }
+
+            .alfred-widget-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+            .alfred-widget-greeting { padding: 14px; text-align: left; background: #f8fafc; border-bottom: 1px solid rgba(15,23,42,0.06); }
+            .alfred-widget-greeting h3 { font-size: 16px; margin: 0 0 6px 0; font-weight: 600; color: #0f172a; }
+            .alfred-widget-greeting p { font-size: 13px; margin: 0; color: #475569; }
+            .alfred-widget-disclaimer { padding: 8px 14px; font-size: 11px; color: #94a3b8; background: #f8fafc; border-top: 1px solid rgba(15,23,42,0.06); }
+
+            .alfred-widget-chat { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+            .alfred-widget-message { display: flex; gap: 10px; align-items: flex-start; }
+            .alfred-widget-message.user { flex-direction: row-reverse; }
+            .alfred-widget-message-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+            .alfred-widget-message.alfred .alfred-widget-message-avatar { background: #eff6ff; color: #1d4ed8; border: 1px solid rgba(37,99,235,.35); }
+            .alfred-widget-message.user .alfred-widget-message-avatar { background: linear-gradient(135deg, #64748b, #475569); color: #fff; }
+            .alfred-widget-message-bubble { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; border: 1px solid transparent; }
+            .alfred-widget-message.alfred .alfred-widget-message-bubble { background: #f1f5f9; color: #0f172a; border-color: #e2e8f0; }
+            .alfred-widget-message.user .alfred-widget-message-bubble { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+
+            .alfred-widget-input-area { padding: 12px; background: #ffffff; border-top: 1px solid rgba(15, 23, 42, 0.08); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+            .alfred-widget-input-wrapper { display: flex; gap: 10px; align-items: flex-end; background: #f8fafc; border-radius: 12px; padding: 10px; border: 1px solid #e2e8f0; }
+            .alfred-widget-input { flex: 1; background: none; border: none; outline: none; color: #0f172a; font-size: 16px; /* prevent iOS zoom */ resize: none; min-height: 20px; max-height: 100px; font-family: inherit; }
+            .alfred-widget-input::placeholder { color: #94a3b8; }
+            .alfred-widget-send { width: 36px; height: 36px; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .15s ease; flex-shrink: 0; }
+            .alfred-widget-send:hover { transform: scale(1.06); }
+
+            .alfred-widget-suggestions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+            .alfred-widget-suggestion { background: #f1f5f9; border: 1px solid #e2e8f0; color: #0f172a; padding: 6px 10px; border-radius: 14px; font-size: 12px; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+            .alfred-widget-suggestion:hover { background: #e2e8f0; transform: translateY(-1px); }
+
+            .alfred-widget-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.35); z-index: 10000; opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s ease; }
+            .alfred-widget-overlay.open { opacity: 1; visibility: visible; }
+
             /* Mobile Responsive */
             @media (max-width: 768px) {
-                .alfred-widget-panel {
-                    width: 100%;
-                    right: -100%;
-                }
-                
-                .alfred-widget-toggle {
-                    width: 50px;
-                    height: 50px;
-                    font-size: 20px;
-                    bottom: 15px;
-                    right: 15px;
-                }
+                .alfred-widget-panel { right: 10px; left: 10px; width: auto; max-width: none; height: min(80vh, 640px); bottom: 80px; }
+                .alfred-widget-toggle { width: 50px; height: 50px; font-size: 20px; bottom: 15px; right: 15px; }
             }
-            
+
             /* Scrollbar Styling */
-            .alfred-widget-chat::-webkit-scrollbar {
-                width: 4px;
-            }
-            
-            .alfred-widget-chat::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            .alfred-widget-chat::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.3);
-                border-radius: 2px;
-            }
-            
-            .alfred-widget-chat::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 255, 255, 0.5);
-            }
+            .alfred-widget-chat::-webkit-scrollbar { width: 4px; }
+            .alfred-widget-chat::-webkit-scrollbar-track { background: transparent; }
+            .alfred-widget-chat::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.5); border-radius: 2px; }
+            .alfred-widget-chat::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.7); }
 
             /* Markdown rendering inside bubbles */
             .alfred-widget-message-bubble .markdown-body { color: inherit; }
@@ -388,25 +168,11 @@
             .alfred-widget-message-bubble .markdown-body ul { list-style: disc inside; }
             .alfred-widget-message-bubble .markdown-body ol { list-style: decimal inside; }
             .alfred-widget-message-bubble .markdown-body li { margin: 0.125rem 0; }
-            .alfred-widget-message-bubble .markdown-body ul { list-style: disc inside; }
-            .alfred-widget-message-bubble .markdown-body ol { list-style: decimal inside; }
             .alfred-widget-message-bubble .markdown-body a { color: inherit; text-decoration: underline; }
-            .alfred-widget-message-bubble pre {
-                background: rgba(0,0,0,0.25);
-                padding: 0.75rem;
-                border-radius: 8px;
-                overflow-x: auto;
-                white-space: pre;
-                -webkit-overflow-scrolling: touch;
-            }
+            .alfred-widget-message-bubble pre { background: rgba(15,23,42,0.06); padding: 0.75rem; border-radius: 8px; overflow-x: auto; white-space: pre; -webkit-overflow-scrolling: touch; }
             .alfred-widget-message.user .alfred-widget-message-bubble pre { background: rgba(255,255,255,0.15); }
             .alfred-widget-message-bubble pre code { background: transparent; padding: 0; }
-            .alfred-widget-message-bubble code {
-                background: rgba(255,255,255,0.15);
-                padding: 0.15rem 0.35rem;
-                border-radius: 4px;
-                font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-            }
+            .alfred-widget-message-bubble code { background: rgba(15,23,42,0.06); padding: 0.15rem 0.35rem; border-radius: 4px; font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
             .alfred-widget-message.user .alfred-widget-message-bubble code { background: rgba(255,255,255,0.25); }
         </style>
     `;
@@ -429,7 +195,7 @@
                         </div>
                         <div>
                             <h3 class="alfred-widget-title">JIA</h3>
-                            <p class="alfred-widget-subtitle">Jeeva's AI Assistant</p>
+                            <p class="alfred-widget-subtitle">Jeeva's AI Assistant • May make mistakes</p>
                         </div>
                     </div>
                     <button class="alfred-widget-close" id="alfredClose">
@@ -449,7 +215,7 @@
                                 <i class="fas fa-robot"></i>
                             </div>
                             <div class="alfred-widget-message-bubble">
-                                Hi there! I'm JIA, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How can I assist you today?
+                                Hi there! I'm JIA, Jeeva's personal AI assistant. I strive to be helpful but I may make mistakes — please verify important information. How can I assist you today?
                             </div>
                         </div>
                     </div>
@@ -472,6 +238,7 @@
                             <div class="alfred-widget-suggestion" data-suggestion="What is Jeeva's experience?">Experience</div>
                             <div class="alfred-widget-suggestion" data-suggestion="How can I contact Jeeva?">Contact</div>
                         </div>
+                        <div class="alfred-widget-disclaimer">AI can make mistakes. For critical decisions, double‑check important info.</div>
                     </div>
                 </div>
             </div>
