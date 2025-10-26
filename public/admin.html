@@ -327,6 +327,7 @@
                 this.authToken = null;
                 this.initializeElements();
                 this.bindEvents();
+                this.tryRestoreSession();
             }
 
             initializeElements() {
@@ -365,6 +366,30 @@
                 });
             }
 
+            handleUnauthorized(context = 'Request') {
+                this.showNotification(`${context} unauthorized. Please login again.`, 'error');
+                this.logout();
+            }
+
+            tryRestoreSession() {
+                try {
+                    const saved = localStorage.getItem('adminToken');
+                    if (!saved) return;
+                    this.authToken = saved;
+                    // Verify token by loading status
+                    this.loadStatus()
+                        .then(() => {
+                            if (this.isAuthenticated) return;
+                            // loadStatus sets isAuthenticated only on success; set here when ok
+                        })
+                        .catch(() => {
+                            this.logout();
+                        });
+                } catch (_) {
+                    // ignore restore errors
+                }
+            }
+
             async login() {
                 const password = this.elements.adminPassword.value.trim();
                 if (!password) {
@@ -385,6 +410,7 @@
 
                     if (response.ok) {
                         this.authToken = result.token;
+                        try { localStorage.setItem('adminToken', this.authToken); } catch (_) {}
                         this.isAuthenticated = true;
                         this.showAdminPanel();
                         this.loadStatus();
@@ -402,6 +428,7 @@
             logout() {
                 this.isAuthenticated = false;
                 this.authToken = null;
+                try { localStorage.removeItem('adminToken'); } catch (_) {}
                 this.showLoginPanel();
                 this.elements.adminPassword.value = '';
             }
@@ -424,9 +451,15 @@
                         }
                     });
 
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Status');
+                        return;
+                    }
+
                     const status = await response.json();
 
                     if (response.ok) {
+                        this.isAuthenticated = true;
                         this.displayStatus(status);
                     } else {
                         this.showNotification('Failed to load status', 'error');
@@ -485,6 +518,11 @@
                         body: formData
                     });
 
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Upload');
+                        return;
+                    }
+
                     const result = await response.json();
 
                     if (response.ok) {
@@ -506,6 +544,12 @@
                     this.showNotification('Please enter a valid URL', 'error');
                     return;
                 }
+                try {
+                    new URL(url);
+                } catch (_) {
+                    this.showNotification('Invalid URL format', 'error');
+                    return;
+                }
 
                 try {
                     const response = await fetch('/api/admin/set-portfolio-url', {
@@ -516,6 +560,11 @@
                         },
                         body: JSON.stringify({ url })
                     });
+
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Update portfolio');
+                        return;
+                    }
 
                     const result = await response.json();
 
@@ -538,6 +587,11 @@
                             'Authorization': `Bearer ${this.authToken}`
                         }
                     });
+
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Settings');
+                        return;
+                    }
 
                     const settings = await response.json();
 
@@ -568,6 +622,11 @@
                         body: JSON.stringify(settings)
                     });
 
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Update settings');
+                        return;
+                    }
+
                     const result = await response.json();
 
                     if (response.ok) {
@@ -593,6 +652,11 @@
                             'Authorization': `Bearer ${this.authToken}`
                         }
                     });
+
+                    if (response.status === 401) {
+                        this.handleUnauthorized('Reinitialize');
+                        return;
+                    }
 
                     const result = await response.json();
 

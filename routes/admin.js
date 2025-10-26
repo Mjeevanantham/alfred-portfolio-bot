@@ -8,7 +8,8 @@ const { knowledgeBase } = require('../services/knowledgeBase');
 const router = express.Router();
 
 // Simple admin authentication (in production, use proper auth)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'alfred2024';
+// Default to requested password when no env provided
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@123';
 
 // Middleware to check admin authentication
 const authenticateAdmin = (req, res, next) => {
