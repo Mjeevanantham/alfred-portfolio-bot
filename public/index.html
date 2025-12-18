@@ -6,191 +6,102 @@
     <title>JIA - Jeeva's AI Assistant</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="/css/styles.css" rel="stylesheet">
     <link href="/css/markdown.css" rel="stylesheet">
-    
     <!-- Syntax highlighting themes (auto-switch with color scheme) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
-    
-    <!-- Modern meta tags for better UX -->
-    <meta name="theme-color" content="#2563eb">
-    <meta name="description" content="JIA - Jeeva's AI Assistant - Interactive portfolio chatbot">
-    <meta property="og:title" content="JIA - Jeeva's AI Assistant">
-    <meta property="og:description" content="Meet JIA, your interactive AI assistant powered by advanced language models.">
-    <meta property="og:type" content="website">
+  <style>
+    /* Mobile and layout fixes */
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    .app-container, .chat-container, .chat-messages, .chat-input-container { overflow-x: hidden; }
+    .chat-input-wrapper { align-items: center; gap: 0.5rem; }
+    #messageInput { padding-top: 2px; font-size: 16px; } /* prevent iOS zoom */
+    .message-bubble .markdown-body img { max-width: 100%; height: auto; }
+    .message-bubble pre, .message-bubble code { white-space: pre-wrap; word-break: break-word; }
+    /* Larger tap targets on mobile */
+    @media (max-width: 480px) {
+      .btn-icon { width: 2.25rem; height: 2.25rem; }
+      .send-button { width: 2.25rem; height: 2.25rem; }
+      .suggestion-chip { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+      .message-bubble .markdown-body { font-size: 1rem; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Particle Background -->
-    <div id="particle-background" class="particle-background"></div>
-    
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loading-content">
-            <div class="loading-logo">
-                <div class="logo-icon">
-                    <i class="fas fa-robot"></i>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="alfred-avatar">
+                    <div class="avatar-circle">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="avatar-status online"></div>
                 </div>
-                <div class="loading-text">
+                <div class="header-info">
                     <h1>JIA</h1>
                     <p>Jeeva's AI Assistant</p>
                 </div>
-            </div>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App Container -->
-    <div id="app-container" class="app-container">
-        <!-- Top Navigation -->
-        <nav class="top-nav">
-            <div class="nav-brand">
-                <div class="brand-logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <span class="brand-text">JIA</span>
-                </div>
-                <div class="brand-subtitle">Jeeva's AI Assistant</div>
-            </div>
-            
-            <div class="nav-actions">
-                <!-- Theme Toggle -->
-                <button id="theme-toggle" class="nav-btn theme-toggle" title="Toggle Theme">
-                    <i class="fas fa-sun"></i>
-                    <i class="fas fa-moon"></i>
-                </button>
-                
-                <!-- Voice Status -->
-                <div id="voice-status" class="voice-status">
-                    <button id="voice-toggle" class="nav-btn voice-btn" title="Voice Input">
+                <div class="header-actions">
+                    <button class="btn-icon" id="settingsToggle" title="Settings">
+                        <i class="fas fa-gear"></i>
+                    </button>
+                    <button class="btn-icon" id="voiceToggle" title="Voice Input">
                         <i class="fas fa-microphone"></i>
-                        <div class="voice-pulse"></div>
+                    </button>
+                    <button class="btn-icon" id="clearChat" title="Clear Chat">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
-                
-                <!-- Settings -->
-                <button id="settings-toggle" class="nav-btn settings-btn" title="Settings">
-                    <i class="fas fa-cog"></i>
-                </button>
-                
-                <!-- Clear Chat -->
-                <button id="clear-chat" class="nav-btn clear-btn" title="Clear Chat">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
             </div>
-        </nav>
+        </header>
 
         <!-- Settings Panel -->
-        <div id="settings-panel" class="settings-panel">
-            <div class="settings-header">
-                <h3>Settings</h3>
-                <button id="settings-close" class="close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
+        <div class="settings-panel" id="settingsPanel">
             <div class="settings-content">
+                <h3>Voice Settings</h3>
                 <div class="setting-group">
-                    <h4>Voice Features</h4>
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <label class="toggle-label">
-                                <span>Enable Voice</span>
-                                <small>Speech recognition and synthesis</small>
-                            </label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="voice-enabled" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="setting-item">
-                        <button id="test-voice" class="btn-secondary">Test Voice</button>
-                        <button id="stop-voice" class="btn-secondary">Stop Voice</button>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="voiceEnabled" checked>
+                        <label for="voiceEnabled">Enable Voice Features</label>
                     </div>
                 </div>
-                
                 <div class="setting-group">
-                    <h4>Chat Preferences</h4>
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <label class="toggle-label">
-                                <span>Sound Effects</span>
-                                <small>Notification sounds</small>
-                            </label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="sound-effects" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
+                    <button class="btn-secondary" id="stopVoice">Stop Voice</button>
                 </div>
             </div>
         </div>
 
         <!-- Chat Container -->
-        <main class="chat-main">
-            <!-- Welcome Screen -->
-            <div id="welcome-screen" class="welcome-screen">
-                <div class="welcome-content">
-                    <div class="welcome-avatar">
-                        <div class="avatar-container">
-                            <div class="avatar-glow"></div>
-                            <div class="avatar-ring"></div>
-                            <div class="avatar-core">
-                                <i class="fas fa-robot"></i>
-                            </div>
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message alfred-message">
+                    <div class="message-avatar">
+                        <div class="avatar-circle">
+                            <i class="fas fa-robot"></i>
                         </div>
                     </div>
-                    
-                    <div class="welcome-text">
-                        <h1>Welcome to JIA</h1>
-                        <p>Your AI assistant ready to help with everything about Jeeva's work, skills, and experience.</p>
-                    </div>
-                    
-                    <div class="quick-actions">
-                        <button class="quick-action" data-suggestion="What are Jeeva's main skills?">
-                            <i class="fas fa-code"></i>
-                            <span>Skills</span>
-                        </button>
-                        <button class="quick-action" data-suggestion="Tell me about Jeeva's projects">
-                            <i class="fas fa-project-diagram"></i>
-                            <span>Projects</span>
-                        </button>
-                        <button class="quick-action" data-suggestion="What is Jeeva's experience?">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Experience</span>
-                        </button>
-                        <button class="quick-action" data-suggestion="How can I contact Jeeva?">
-                            <i class="fas fa-envelope"></i>
-                            <span>Contact</span>
-                        </button>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p>Good day! I'm JIA, Jeeva's personal AI assistant. I'm here to help you learn about his work, skills, and experience. How may I assist you today?</p>
+                        </div>
+                        <div class="message-time">Just now</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Messages Area -->
-            <div id="messages-container" class="messages-container">
-                <div id="chat-messages" class="chat-messages">
-                    <!-- Messages will be dynamically added here -->
-                </div>
-                
-                <!-- Typing Indicator -->
-                <div id="typing-indicator" class="typing-indicator">
-                    <div class="typing-avatar">
-                        <div class="avatar-container mini">
-                            <div class="avatar-core">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                        </div>
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="message-avatar">
+                    <div class="avatar-circle">
+                        <i class="fas fa-robot"></i>
                     </div>
-                    <div class="typing-content">
-                        <div class="typing-text">JIA is typing...</div>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble typing">
                         <div class="typing-dots">
                             <span></span>
                             <span></span>
@@ -201,102 +112,39 @@
             </div>
 
             <!-- Input Area -->
-            <div class="input-section">
-                <!-- Quick Suggestions -->
-                <div id="quick-suggestions" class="quick-suggestions">
-                    <div class="suggestions-wrapper">
-                        <button class="suggestion-chip" data-suggestion="What are Jeeva's main skills?">Skills</button>
-                        <button class="suggestion-chip" data-suggestion="Tell me about Jeeva's projects">Projects</button>
-                        <button class="suggestion-chip" data-suggestion="What is Jeeva's experience?">Experience</button>
-                        <button class="suggestion-chip" data-suggestion="How can I contact Jeeva?">Contact</button>
-                    </div>
-                </div>
-
-                <!-- Input Container -->
-                <div class="input-container">
-                    <div class="input-wrapper">
-                        <div class="input-field-container">
-                            <textarea 
-                                id="message-input" 
-                                placeholder="Ask JIA about Jeeva's work, skills, or experience..."
-                                rows="1"
-                                maxlength="2000"
-                            ></textarea>
-                            <div class="input-actions">
-                                <button id="attach-button" class="input-action-btn" title="Attach File">
-                                    <i class="fas fa-paperclip"></i>
-                                </button>
-                                <button id="emoji-button" class="input-action-btn" title="Emoji">
-                                    <i class="fas fa-smile"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <button id="send-button" class="send-button" disabled>
-                            <div class="send-icon">
-                                <i class="fas fa-paper-plane"></i>
-                            </div>
-                            <div class="send-loading">
-                                <div class="loading-spinner"></div>
-                            </div>
-                        </button>
-                    </div>
-                    
-                    <div class="input-info">
-                        <div class="char-counter">
-                            <span id="char-count">0</span>/2000
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Floating Action Buttons -->
-        <div class="fab-container">
-            <button id="scroll-to-bottom" class="fab scroll-fab" title="Scroll to Bottom">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            
-            <button id="new-chat-fab" class="fab chat-fab" title="New Chat">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-
-        <!-- Voice Modal -->
-        <div id="voice-modal" class="voice-modal">
-            <div class="voice-backdrop"></div>
-            <div class="voice-content">
-                <div class="voice-animation">
-                    <div class="voice-sphere">
-                        <div class="voice-waves">
-                            <div class="wave"></div>
-                            <div class="wave"></div>
-                            <div class="wave"></div>
-                            <div class="wave"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="voice-text">
-                    <h3>Listening...</h3>
-                    <p>Speak clearly into your microphone</p>
-                    <div id="voice-transcript" class="voice-transcript"></div>
-                </div>
-                
-                <div class="voice-actions">
-                    <button id="voice-cancel" class="voice-btn secondary">
-                        <i class="fas fa-times"></i>
-                        Cancel
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Ask JIA about Jeeva's work, skills, or experience..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
+                <div class="input-suggestions" id="inputSuggestions">
+                    <button class="suggestion-chip" data-suggestion="What are Jeeva's main skills?">Skills</button>
+                    <button class="suggestion-chip" data-suggestion="Tell me about Jeeva's projects">Projects</button>
+                    <button class="suggestion-chip" data-suggestion="What is Jeeva's experience?">Experience</button>
+                    <button class="suggestion-chip" data-suggestion="How can I contact Jeeva?">Contact</button>
+                </div>
             </div>
         </div>
 
-        <!-- Toast Notifications -->
-        <div id="toast-container" class="toast-container"></div>
-
-        <!-- Emoji Picker (placeholder) -->
-        <div id="emoji-picker" class="emoji-picker"></div>
+        <!-- Voice Input Modal -->
+        <div class="voice-modal" id="voiceModal">
+            <div class="voice-content">
+                <div class="voice-animation">
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                    <div class="voice-circle"></div>
+                </div>
+                <h3>Listening...</h3>
+                <p>Speak your question to JIA</p>
+                <button class="btn-secondary" id="stopListening">Stop</button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -306,9 +154,6 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <!-- Syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <!-- Particles.js for background effects -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <!-- Modern app script -->
-    <script src="/js/app.js"></script>
+    <script src="/js/app.min.js"></script>
 </body>
 </html>
